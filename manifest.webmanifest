@@ -1,0 +1,8 @@
+{
+  "id":"./",
+  "name":"ميزانيتي - تتبع المصاريف والمداخيل",
+  "short_name":"ميزانيتي",
+  "description":"دفتر شخصي لتتبع المصاريف والمداخيل بالدرهم المغربي",
+  "lang":"ar", "dir":"rtl", "start_url":"./", "scope":"./",
+  "display":"standalone", "background_color":"#f3f6f8", "theme_color":"#12304a"
+}

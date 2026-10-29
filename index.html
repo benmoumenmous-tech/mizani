@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#12304a">
+<link rel="manifest" href="manifest.webmanifest">
+<title>ميزانيتي | تتبع المصاريف</title>
+<style>
+:root{--navy:#12304a;--gold:#d6a84f;--bg:#f3f6f8;--card:#fff;--ink:#1c2933;--muted:#6b7882;--line:#e4e9ed;--green:#16845b;--red:#c44848}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif}
+header{background:linear-gradient(135deg,#102c43,#1c4b68);color:white;padding:22px 16px 28px;border-radius:0 0 24px 24px}
+.wrap{max-width:980px;margin:auto;padding:0 14px}header .top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+h1{font-size:25px;margin:0 0 5px}header p{margin:0;color:#d7e3eb;font-size:13px}
+.pill{border:1px solid #ffffff55;padding:7px 11px;border-radius:20px;font-size:12px;white-space:nowrap}
+main{max-width:980px;margin:-12px auto 40px;padding:0 14px}
+nav{display:flex;gap:7px;overflow:auto;padding:8px;background:white;border-radius:14px;box-shadow:0 5px 20px #19384d12}
+nav button{border:0;background:transparent;padding:10px 13px;border-radius:10px;color:var(--muted);font:inherit;white-space:nowrap;cursor:pointer}
+nav button.active{background:var(--navy);color:white}
+.panel{display:none;margin-top:14px}.panel.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px;box-shadow:0 3px 14px #17364a08}
+.metric small{color:var(--muted);display:block;font-size:12px}.metric strong{font-size:22px;display:block;margin-top:6px;direction:ltr;text-align:right}
+h2{font-size:18px;margin:18px 2px 10px}h3{font-size:15px;margin:0 0 12px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+input,select,textarea{width:100%;padding:11px 12px;border:1px solid #d8e0e6;border-radius:10px;background:white;color:var(--ink);font:inherit;min-width:0}
+input:focus,select:focus,textarea:focus{outline:2px solid #d6a84f66;border-color:var(--gold)}
+.field{flex:1 1 180px}.field.small{flex:1 1 130px}
+button.primary,.btn{border:0;background:var(--navy);color:white;padding:11px 16px;border-radius:10px;font:inherit;cursor:pointer}
+button.gold{background:var(--gold);color:#18232b}.btn.light{background:#edf2f5;color:var(--navy)}.btn.danger{background:#fff0f0;color:var(--red)}
+form .actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.hint{font-size:12px;color:var(--muted);line-height:1.7}
+.list{display:grid;gap:8px}.item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px;background:white;border:1px solid var(--line);border-radius:12px}
+.item .sub{font-size:12px;color:var(--muted);margin-top:4px}.amount{font-weight:700;direction:ltr;white-space:nowrap}.income{color:var(--green)}.expense{color:var(--red)}
+.actions-mini{display:flex;gap:5px}.actions-mini button{border:0;border-radius:8px;padding:7px 9px;background:#eef2f5;color:var(--navy);cursor:pointer}
+.barrow{display:grid;grid-template-columns:90px 1fr 85px;align-items:center;gap:9px;margin:11px 0;font-size:12px}
+.track{height:10px;background:#edf1f4;border-radius:20px;overflow:hidden}.fill{height:100%;background:var(--gold);border-radius:20px}
+.chart{display:flex;align-items:end;gap:7px;height:160px;padding:12px 4px 0;border-bottom:1px solid var(--line)}
+.colbar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:end;height:100%;gap:5px;min-width:0}
+.colbar i{display:block;width:min(100%,34px);background:#d6a84f;border-radius:6px 6px 0 0;min-height:2px}
+.colbar span{font-size:10px;color:var(--muted);white-space:nowrap}
+.empty{text-align:center;padding:22px;color:var(--muted);font-size:13px}
+.progress{height:12px;background:#edf1f4;border-radius:20px;overflow:hidden;margin:10px 0}.progress>i{display:block;height:100%;background:var(--green)}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
+.hidden{display:none!important}
+@media(max-width:650px){.grid{grid-template-columns:repeat(2,1fr)}.metric strong{font-size:19px}.item{align-items:flex-start}.barrow{grid-template-columns:75px 1fr 72px}}
+body:not(.unlocked)>header,body:not(.unlocked)>main{visibility:hidden}
+#pinGate{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:22px;background:linear-gradient(145deg,#102c43,#1c4b68)}
+#pinGate .pinbox{width:min(100%,390px);background:#fff;border-radius:22px;padding:25px;box-shadow:0 18px 55px #0003;text-align:center}
+#pinGate .pinmark{width:58px;height:58px;margin:0 auto 12px;border-radius:18px;background:#12304a;color:#d6a84f;display:grid;place-items:center;font-size:27px}
+#pinGate h2{margin:8px 0;color:#12304a}
+#pinGate p{font-size:13px;line-height:1.8;color:#6b7882}
+#pinGate input{margin:10px 0;text-align:center;letter-spacing:8px;font-size:22px}
+#pinGate button{width:100%;margin-top:8px}
+#pinError{color:#c44848;min-height:20px;font-size:12px}
+#lockBtn{border:1px solid #ffffff66;background:#ffffff18;color:white;border-radius:9px;padding:7px 10px;font:inherit;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="pinGate"><div class="pinbox"><div class="pinmark">◆</div><h2>ميزانيتي</h2><p id="pinMessage">أنشئ رمزا سريا من 4 إلى 8 أرقام لقفل التطبيق.</p><input id="pinInput" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="••••" autocomplete="off"><input id="pinConfirm" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="تأكيد الرمز" autocomplete="off"><div id="pinError"></div><button class="primary" id="pinSubmit">حفظ الرمز والمتابعة</button><p style="font-size:11px">قفل إضافي للواجهة فقط، وليس تشفيرا للبيانات. احمِ هاتفك بقفل الشاشة أيضا.</p></div></div>
+<header><div class="wrap top"><div><h1>ميزانيتي</h1><p>دفتر بسيط لمصاريفك ومداخيلك اليومية</p></div><div class="row"><button id="lockBtn" type="button">قفل التطبيق</button><span class="pill">محلي على هذا الهاتف</span></div></div></header>
+<main>
+<nav>
+<button class="active" data-tab="dashboard">الرئيسية</button>
+<button data-tab="add">إضافة حركة</button>
+<button data-tab="records">السجل</button>
+<button data-tab="reports">التقارير</button>
+<button data-tab="settings">الميزانية والنسخ</button>
+</nav>
+<section id="dashboard" class="panel active">
+<div class="row between"><h2>ملخص الشهر</h2><div class="field small"><input type="month" id="dashMonth"></div></div>
+<div class="grid">
+<div class="card metric"><small>المداخيل</small><strong id="dIncome">0 DH</strong></div>
+<div class="card metric"><small>المصاريف</small><strong id="dExpense">0 DH</strong></div>
+<div class="card metric"><small>الرصيد الصافي</small><strong id="dNet">0 DH</strong></div>
+<div class="card metric"><small>عدد الحركات</small><strong id="dCount">0</strong></div>
+</div>
+<div class="card" style="margin-top:12px"><div class="row between"><h3>توزيع المصاريف حسب الفئة</h3><span class="hint" id="budgetLabel"></span></div><div id="dashCategories"></div></div>
+<div class="card" style="margin-top:12px"><h3>آخر الحركات</h3><div id="recent" class="list"></div></div>
+</section>
+<section id="add" class="panel">
+<h2 id="formTitle">تسجيل حركة جديدة</h2>
+<div class="card">
+<form id="entryForm">
+<input type="hidden" id="editId">
+<div class="row">
+<div class="field small"><label>نوع الحركة</label><select id="type"><option value="expense">مصروف</option><option value="income">مدخول</option></select></div>
+<div class="field small"><label>المبلغ (درهم)</label><input id="amount" type="number" min="0.01" step="0.01" placeholder="مثلا 45" required></div>
+<div class="field small"><label>التاريخ</label><input id="date" type="date" required></div>
+</div>
+<div class="row" style="margin-top:12px">
+<div class="field"><label>النطاق</label><select id="scope"><option value="شخصي">شخصي</option><option value="أسري">أسري</option></select></div>
+<div class="field"><label>الفئة</label><select id="category"></select></div>
+<div class="field"><label>التفصيل</label><select id="detail"></select></div>
+</div>
+<div style="margin-top:12px"><label>ملاحظة (اختياري)</label><input id="note" maxlength="100" placeholder="مثلا: من السوق الأسبوعي"></div>
+<div class="actions"><button class="primary" type="submit" id="saveBtn">حفظ الحركة</button><button class="btn light hidden" type="button" id="cancelEdit">إلغاء التعديل</button></div>
+</form>
+</div>
+<p class="hint">يمكنك تسجيل المصاريف الشخصية والأسرية بشكل منفصل، واختيار تفاصيل مثل اللحم أو الدجاج أو الطماطم.</p>
+</section>
+<section id="records" class="panel">
+<h2>سجل الحركات</h2>
+<div class="card">
+<div class="row">
+<div class="field"><label>الشهر</label><input type="month" id="filterMonth"></div>
+<div class="field"><label>النوع</label><select id="filterType"><option value="all">الكل</option><option value="expense">المصاريف</option><option value="income">المداخيل</option></select></div>
+<div class="field"><label>النطاق</label><select id="filterScope"><option value="all">الكل</option><option>شخصي</option><option>أسري</option></select></div>
+</div>
+</div>
+<div id="recordsList" class="list" style="margin-top:10px"></div>
+</section>
+<section id="reports" class="panel">
+<div class="row between"><h2>التقارير والمقارنة</h2><div class="field small"><input type="month" id="reportMonth"></div></div>
+<div class="grid">
+<div class="card metric"><small>مصاريف الشهر</small><strong id="rExpense">0 DH</strong></div>
+<div class="card metric"><small>مداخيل الشهر</small><strong id="rIncome">0 DH</strong></div>
+<div class="card metric"><small>الصافي</small><strong id="rNet">0 DH</strong></div>
+<div class="card metric"><small>مقارنة بالشهر السابق</small><strong id="rCompare">—</strong></div>
+</div>
+<div class="card" style="margin-top:12px"><h3>المصاريف حسب الفئة</h3><div id="reportCategories"></div></div>
+<div class="card" style="margin-top:12px"><h3>مقارنة المصاريف خلال آخر 6 أشهر</h3><div class="chart" id="monthChart"></div></div>
+<div class="card" style="margin-top:12px"><h3>تفاصيل المصروف حسب النوع</h3><div id="detailBreakdown"></div></div>
+</section>
+<section id="settings" class="panel">
+<h2>الميزانية الشهرية</h2>
+<div class="card">
+<label>حدد ميزانية المصاريف الشهرية (درهم)</label>
+<div class="row"><div class="field"><input id="budget" type="number" min="0" step="1" placeholder="مثلا 5000"></div><button class="primary" id="saveBudget">حفظ الميزانية</button></div>
+<p class="hint" id="budgetStatus"></p>
+</div>
+<h2>النسخ الاحتياطي والخصوصية</h2>
+<div class="card">
+<p class="hint">بياناتك محفوظة داخل متصفح هذا الهاتف ولا تُرسل إلى خادم. احفظ نسخة احتياطية بانتظام، خصوصا قبل تغيير الهاتف أو حذف بيانات المتصفح.</p>
+<div class="row"><button class="primary" id="exportBtn">تصدير نسخة احتياطية</button><button class="btn light" id="importBtn">استيراد نسخة</button><input type="file" id="importFile" accept="application/json" class="hidden"></div>
+<p class="hint">التصدير ينشئ ملف JSON يحتوي على حركاتك والميزانية. يمكنك الاحتفاظ به في ملفات الهاتف.</p>
+<button class="btn danger" id="clearBtn">حذف جميع البيانات</button>
+</div>
+</section>
+<footer>ميزانيتي · جميع المبالغ بالدرهم المغربي (MAD)</footer>
+</main>
+<script>
+const KEY='mizani_data_v1', BKEY='mizani_budget_v1';
+const categories={
+'المواد الغذائية':['اللحم','الدجاج','السمك','الخضر','الفواكه','الحليب ومشتقاته','الخبز والحبوب','مواد غذائية أخرى'],
+'السكن والفواتير':['الكهرباء','الماء','الإنترنت والهاتف','الكراء','الصيانة','مستلزمات المنزل'],
+'النقل والتنقل':['الوقود','سيارة وصيانة','سيارة أجرة','النقل العمومي'],
+'الصحة':['الأدوية','الطبيب','التحاليل','العناية الصحية'],
+'التعليم':['اللوازم المدرسية','الدروس والتكوين','الكتب'],
+'الأطفال والأسرة':['ملابس الأطفال','مصروف الأبناء','أنشطة وترفيه'],
+'الملابس والعناية':['ملابس','أحذية','حلاقة وتجميل','عناية شخصية'],
+'الترفيه والمطاعم':['مطاعم ومقاهي','خرجات','سفر'],
+'التزامات أخرى':['مساعدات وهدايا','أقساط وديون','مصاريف متنوعة'],
+'مداخيل':['راتب','عمل إضافي','تعويضات','مداخيل أخرى']
+};
+let data=load(), budget=Number(localStorage.getItem(BKEY)||0);
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return []}}
+function persist(){localStorage.setItem(KEY,JSON.stringify(data))}
+const $=id=>document.getElementById(id);
+const today=new Date(), monthNow=()=>today.toISOString().slice(0,7), dateNow=()=>today.toISOString().slice(0,10);
+function money(n){return Number(n||0).toLocaleString('fr-MA',{maximumFractionDigits:2})+' DH'}
+function sum(arr,type){return arr.filter(x=>!type||x.type===type).reduce((s,x)=>s+Number(x.amount),0)}
+function monthItems(m){return data.filter(x=>x.date.startsWith(m))}
+function escapeHTML(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function fillCategories(selected){let type=$('type').value;let keys=Object.keys(categories).filter(k=>type==='income'?k==='مداخيل':k!=='مداخيل');$('category').innerHTML=keys.map(k=>`<option>${k}</option>`).join('');if(selected&&keys.includes(selected))$('category').value=selected;fillDetails()}
+function fillDetails(selected){let arr=categories[$('category').value]||[];$('detail').innerHTML=arr.map(x=>`<option>${x}</option>`).join('');if(selected&&arr.includes(selected))$('detail').value=selected}
+function tab(name){document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===name));if(name==='records')renderRecords();if(name==='reports')renderReports();if(name==='dashboard')renderDashboard()}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>tab(b.dataset.tab));
+$('type').onchange=()=>fillCategories();$('category').onchange=()=>fillDetails();
+$('date').value=dateNow();$('dashMonth').value=$('reportMonth').value=$('filterMonth').value=monthNow();fillCategories();
+$('entryForm').onsubmit=e=>{e.preventDefault();let id=$('editId').value;let obj={id:id||String(Date.now()),type:$('type').value,amount:Number($('amount').value),date:$('date').value,scope:$('scope').value,category:$('category').value,detail:$('detail').value,note:$('note').value.trim()};if(!obj.amount||obj.amount<=0)return;if(id){data=data.map(x=>x.id===id?obj:x)}else data.push(obj);persist();resetForm();renderAll();tab('dashboard')};
+function resetForm(){$('entryForm').reset();$('editId').value='';$('date').value=dateNow();$('formTitle').textContent='تسجيل حركة جديدة';$('saveBtn').textContent='حفظ الحركة';$('cancelEdit').classList.add('hidden');fillCategories()}
+$('cancelEdit').onclick=resetForm;
+function editItem(id){let x=data.find(a=>a.id===id);if(!x)return;tab('add');$('editId').value=x.id;$('type').value=x.type;fillCategories(x.category);$('amount').value=x.amount;$('date').value=x.date;$('scope').value=x.scope;$('detail').value=x.detail;$('note').value=x.note;$('formTitle').textContent='تعديل الحركة';$('saveBtn').textContent='حفظ التعديلات';$('cancelEdit').classList.remove('hidden')}
+function deleteItem(id){if(confirm('هل تريد حذف هذه الحركة؟')){data=data.filter(x=>x.id!==id);persist();renderAll()}}
+function itemHTML(x){return `<div class="item"><div><strong>${x.type==='income'?'＋':'−'} ${escapeHTML(x.detail)}</strong><div class="sub">${escapeHTML(x.date)} · ${escapeHTML(x.scope)} · ${escapeHTML(x.category)}${x.note?' · '+escapeHTML(x.note):''}</div></div><div class="row"><span class="amount ${x.type==='income'?'income':'expense'}">${money(x.amount)}</span><div class="actions-mini"><button onclick="editItem('${x.id}')">تعديل</button><button onclick="deleteItem('${x.id}')">حذف</button></div></div></div>`}
+function renderDashboard(){let m=$('dashMonth').value||monthNow(),a=monthItems(m),inc=sum(a,'income'),exp=sum(a,'expense');$('dIncome').textContent=money(inc);$('dExpense').textContent=money(exp);$('dNet').textContent=money(inc-exp);$('dCount').textContent=a.length;$('budgetLabel').textContent=budget?`الميزانية: ${money(budget)}`:'';renderBars($('dashCategories'),a.filter(x=>x.type==='expense'));let recent=[...a].sort((x,y)=>y.date.localeCompare(x.date)).slice(0,5);$('recent').innerHTML=recent.length?recent.map(itemHTML).join(''):'<div class="empty">لا توجد حركات في هذا الشهر بعد.</div>'}
+function renderBars(el,arr){let total=sum(arr,'expense'),groups={};arr.forEach(x=>groups[x.category]=(groups[x.category]||0)+Number(x.amount));let entries=Object.entries(groups).sort((a,b)=>b[1]-a[1]);el.innerHTML=entries.length?entries.map(([k,v])=>`<div class="barrow"><span>${escapeHTML(k)}</span><div class="track"><div class="fill" style="width:${total?100*v/total:0}%"></div></div><b>${money(v)}</b></div>`).join(''):'<div class="empty">لا توجد مصاريف مسجلة.</div>'}
+function renderRecords(){let m=$('filterMonth').value,typ=$('filterType').value,sc=$('filterScope').value;let a=data.filter(x=>(!m||x.date.startsWith(m))&&(typ==='all'||x.type===typ)&&(sc==='all'||x.scope===sc)).sort((x,y)=>y.date.localeCompare(x.date));$('recordsList').innerHTML=a.length?a.map(itemHTML).join(''):'<div class="card empty">لا توجد حركات مطابقة.</div>'}
+function renderReports(){let m=$('reportMonth').value||monthNow(),a=monthItems(m),prev=new Date(m+'-01T12:00:00');prev.setMonth(prev.getMonth()-1);let pm=prev.toISOString().slice(0,7),p=sum(monthItems(pm),'expense'),ex=sum(a,'expense'),inc=sum(a,'income');$('rExpense').textContent=money(ex);$('rIncome').textContent=money(inc);$('rNet').textContent=money(inc-ex);$('rCompare').textContent=p?((ex-p)/p*100).toFixed(1)+'%':(ex?'جديد':'—');$('rCompare').style.color=ex>p?'var(--red)':'var(--green)';renderBars($('reportCategories'),a.filter(x=>x.type==='expense'));
+let months=[];for(let i=5;i>=0;i--){let d=new Date(m+'-01T12:00:00');d.setMonth(d.getMonth()-i);let key=d.toISOString().slice(0,7);months.push({key,val:sum(monthItems(key),'expense')})}let max=Math.max(1,...months.map(x=>x.val));$('monthChart').innerHTML=months.map(x=>`<div class="colbar" title="${money(x.val)}"><i style="height:${Math.max(2,x.val/max*100)}%"></i><span>${x.key.slice(5)}</span></div>`).join('');
+let det={};a.filter(x=>x.type==='expense').forEach(x=>det[x.detail]=(det[x.detail]||0)+Number(x.amount));let ds=Object.entries(det).sort((a,b)=>b[1]-a[1]);$('detailBreakdown').innerHTML=ds.length?ds.map(([k,v])=>`<div class="row between" style="padding:8px 0;border-bottom:1px solid var(--line)"><span>${escapeHTML(k)}</span><b>${money(v)}</b></div>`).join(''):'<div class="empty">لا توجد تفاصيل بعد.</div>'}
+$('dashMonth').onchange=renderDashboard;$('reportMonth').onchange=renderReports;['filterMonth','filterType','filterScope'].forEach(id=>$(id).onchange=renderRecords);
+$('saveBudget').onclick=()=>{budget=Number($('budget').value)||0;localStorage.setItem(BKEY,String(budget));renderAll();alert('تم حفظ الميزانية')};
+function renderBudgetStatus(){let m=monthNow(),spent=sum(monthItems(m),'expense');$('budget').value=budget||'';$('budgetStatus').textContent=budget?`المصروف هذا الشهر: ${money(spent)} من ${money(budget)} (${Math.round(spent/budget*100)}%).`:'لم تحدد ميزانية بعد.'}
+$('exportBtn').onclick=()=>{let blob=new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),budget,data},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='mizani-backup-'+dateNow()+'.json';a.click();URL.revokeObjectURL(url)};
+$('importBtn').onclick=()=>$('importFile').click();
+$('importFile').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let o=JSON.parse(await f.text());if(!Array.isArray(o.data))throw Error();if(confirm('سيتم استبدال البيانات الحالية بالنسخة المختارة. هل تتابع؟')){data=o.data;budget=Number(o.budget)||0;persist();localStorage.setItem(BKEY,String(budget));renderAll();alert('تم استيراد النسخة بنجاح')}}catch(err){alert('تعذر قراءة الملف. تأكد أنه نسخة صادرة من ميزانيتي.')}e.target.value=''};
+$('clearBtn').onclick=()=>{if(confirm('تحذير: سيتم حذف كل الحركات والميزانية نهائيا من هذا المتصفح. هل أنت متأكد؟')){data=[];budget=0;persist();localStorage.removeItem(BKEY);renderAll()}};
+function renderAll(){renderDashboard();renderRecords();renderReports();renderBudgetStatus()}
+renderAll();
+if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {})); }
+
+// قفل PIN محلي للواجهة. لا يقوم بتشفير سجل المصاريف المخزن في المتصفح.
+const PIN_KEY='mizani_pin_hash_v1';
+const pinGate=document.getElementById('pinGate'), pinInput=document.getElementById('pinInput'), pinConfirm=document.getElementById('pinConfirm'), pinMessage=document.getElementById('pinMessage'), pinError=document.getElementById('pinError'), pinSubmit=document.getElementById('pinSubmit');
+async function pinDigest(value){const bytes=new TextEncoder().encode('mizani-local-pin-v1:'+value);if(window.crypto&&crypto.subtle){const digest=await crypto.subtle.digest('SHA-256',bytes);return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('')}let h=2166136261;for(const b of bytes){h^=b;h=Math.imul(h,16777619)}return 'fallback-'+(h>>>0).toString(16)}
+function unlockUI(){document.body.classList.add('unlocked');pinGate.style.display='none';sessionStorage.setItem('mizani_unlocked','1')}
+function lockUI(){sessionStorage.removeItem('mizani_unlocked');document.body.classList.remove('unlocked');pinGate.style.display='flex';pinInput.value='';pinConfirm.value='';pinError.textContent='';const exists=!!localStorage.getItem(PIN_KEY);pinConfirm.style.display=exists?'none':'block';pinMessage.textContent=exists?'أدخل رمز PIN لفتح ميزانيتي.':'أنشئ رمزا سريا من 4 إلى 8 أرقام لقفل التطبيق.';pinSubmit.textContent=exists?'فتح التطبيق':'حفظ الرمز والمتابعة';pinInput.focus()}
+pinSubmit.addEventListener('click',async()=>{const pin=pinInput.value,saved=localStorage.getItem(PIN_KEY);if(!/^\d{4,8}$/.test(pin)){pinError.textContent='أدخل 4 إلى 8 أرقام.';return}if(saved){if(await pinDigest(pin)===saved){unlockUI()}else{pinError.textContent='الرمز غير صحيح.';pinInput.select()}}else{if(pin!==pinConfirm.value){pinError.textContent='الرمزان غير متطابقين.';return}localStorage.setItem(PIN_KEY,await pinDigest(pin));unlockUI()}});
+pinInput.addEventListener('keydown',e=>{if(e.key==='Enter')pinSubmit.click()});pinConfirm.addEventListener('keydown',e=>{if(e.key==='Enter')pinSubmit.click()});document.getElementById('lockBtn').addEventListener('click',lockUI);if(sessionStorage.getItem('mizani_unlocked')==='1'){unlockUI()}else{lockUI()}
+
+</script>
+</body></html>
